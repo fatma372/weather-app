@@ -44,10 +44,35 @@ class _SearchPageState extends State<SearchPage> {
     _searchController = TextEditingController();
   }
 
-  Future<WeatherModel> fetchWeather(String city) async {
-    WeatherModel fetchedWeather =
-        await WeatherServices(Dio()).GetWeather(city: city);
-    return fetchedWeather;
+  Future<void> fetchWeather(String city) async {
+    try {
+      WeatherModel fetchedWeather =
+      await WeatherServices(Dio()).GetWeather(city: city);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchedCity(weather: fetchedWeather),
+        ),
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text('Weather data not available. Please try again.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -93,19 +118,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 suffixIcon: IconButton(
                   onPressed: () async {
-                    WeatherModel fetchedWeather =
-                        await fetchWeather(_searchController!.text);
-                    if (fetchedWeather != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              SearchedCity(weather: fetchedWeather),
-                        ),
-                      );
-                    } else {
-                      print('Weather data not available');
-                    }
+                    await fetchWeather(_searchController!.text);
                   },
                   icon: Container(
                     decoration: BoxDecoration(
@@ -146,5 +159,3 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 }
-
-
